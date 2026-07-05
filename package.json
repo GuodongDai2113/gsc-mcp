@@ -1,0 +1,30 @@
+{
+  "name": "gsc-mcp",
+  "version": "1.0.0",
+  "description": "Google Search Console MCP Server - TypeScript MCP 服务器",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js"
+  },
+  "keywords": ["mcp", "google-search-console", "gsc", "seo"],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "google-auth-library": "^10.9.0",
+    "open": "^10.2.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  },
+  "bin": {
+    "gsc-mcp": "./build/index.js"
+  },
+  "files": [
+    "build"
+  ]
+}
