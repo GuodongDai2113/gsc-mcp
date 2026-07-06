@@ -5,7 +5,7 @@ import { getGscClient, reauthenticate, ALLOW_DESTRUCTIVE, DATA_STATE } from "./a
 import type { OAuth2Client } from "google-auth-library";
 
 /** GSC API 基础 URL */
-const GSC_API_BASE = "https://searchconsole.googleapis.com/v1";
+const GSC_API_BASE = "https://searchconsole.googleapis.com/";
 
 /** 创建 MCP 服务器实例 */
 const server = new McpServer({
@@ -160,7 +160,7 @@ server.registerTool(
     try {
       const client = await getGscClient();
       const data = await gscRequest<{ siteEntry?: Array<{ siteUrl: string; permissionLevel: string }> }>(
-        client, "GET", "/sites"
+        client, "GET", "webmasters/v3/sites"
       );
       const sites = data.siteEntry || [];
       if (!sites.length) return { content: [{ type: "text" as const, text: "No Search Console properties found." }] };
@@ -198,7 +198,7 @@ server.registerTool(
     }
     try {
       const client = await getGscClient();
-      const response = await gscRequest<{ permissionLevel?: string }>(client, "PUT", `/sites/${encodeURIComponent(site_url)}`);
+      const response = await gscRequest<{ permissionLevel?: string }>(client, "PUT", `webmasters/v3/sites/${encodeURIComponent(site_url)}`);
       const lines = [`Site ${site_url} has been added to Search Console.`];
       if (response?.permissionLevel) lines.push(`Permission level: ${response.permissionLevel}`);
       return { content: [{ type: "text" as const, text: lines.join("\n") }] };
@@ -251,7 +251,7 @@ server.registerTool(
     }
     try {
       const client = await getGscClient();
-      await gscRequest(client, "DELETE", `/sites/${encodeURIComponent(site_url)}`);
+      await gscRequest(client, "DELETE", `webmasters/v3/sites/${encodeURIComponent(site_url)}`);
       return { content: [{ type: "text" as const, text: `Site ${site_url} has been removed from Search Console.` }] };
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -293,7 +293,7 @@ server.registerTool(
   async ({ site_url }) => {
     try {
       const client = await getGscClient();
-      const siteInfo = await gscRequest<Record<string, unknown>>(client, "GET", `/sites/${encodeURIComponent(site_url)}`);
+      const siteInfo = await gscRequest<Record<string, unknown>>(client, "GET", `webmasters/v3/sites/${encodeURIComponent(site_url)}`);
 
       const result: Record<string, unknown> = {
         site_url,
@@ -356,7 +356,7 @@ server.registerTool(
       };
 
       const response = await gscRequest<{ rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }> }>(
-        client, "POST", `/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body
+        client, "POST", `webmasters/v3/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body
       );
 
       if (!response.rows?.length) {
@@ -419,13 +419,13 @@ server.registerTool(
       // 获取总计
       const totalBody = { ...dateRange, dimensions: [], rowLimit: 1, dataState: DATA_STATE };
       const totalResponse = await gscRequest<{ rows?: Array<{ clicks: number; impressions: number; ctr: number; position: number }> }>(
-        client, "POST", `/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, totalBody
+        client, "POST", `webmasters/v3/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, totalBody
       );
 
       // 获取每日趋势
       const dateBody = { ...dateRange, dimensions: ["date"], rowLimit: days, dataState: DATA_STATE };
       const dateResponse = await gscRequest<{ rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }> }>(
-        client, "POST", `/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, dateBody
+        client, "POST", `webmasters/v3/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, dateBody
       );
 
       if (!totalResponse.rows?.length) {
@@ -551,7 +551,7 @@ server.registerTool(
       }
 
       const response = await gscRequest<{ rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }> }>(
-        client, "POST", `/sites/${encodeURIComponent(params.site_url)}/searchAnalytics/query`, body
+        client, "POST", `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/searchAnalytics/query`, body
       );
 
       if (!response.rows?.length) {
@@ -632,10 +632,10 @@ server.registerTool(
 
       const [p1Response, p2Response] = await Promise.all([
         gscRequest<{ rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }> }>(
-          client, "POST", `/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body1
+          client, "POST", `webmasters/v3/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body1
         ),
         gscRequest<{ rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }> }>(
-          client, "POST", `/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body2
+          client, "POST", `webmasters/v3/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body2
         ),
       ]);
 
@@ -741,7 +741,7 @@ server.registerTool(
       };
 
       const response = await gscRequest<{ rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }> }>(
-        client, "POST", `/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body
+        client, "POST", `webmasters/v3/sites/${encodeURIComponent(site_url)}/searchAnalytics/query`, body
       );
 
       if (!response.rows?.length) {
@@ -799,7 +799,7 @@ server.registerTool(
       const body = { inspectionUrl: page_url, siteUrl: site_url };
 
       const response = await gscRequest<{ inspectionResult?: Record<string, unknown> }>(
-        client, "POST", "/urlInspection/index:inspect", body
+        client, "POST", "v1/urlInspection/index:inspect", body
       );
 
       if (!response?.inspectionResult) {
@@ -872,7 +872,7 @@ server.registerTool(
         try {
           const body = { inspectionUrl: pageUrl, siteUrl: site_url };
           const response = await gscRequest<{ inspectionResult?: Record<string, unknown> }>(
-            client, "POST", "/urlInspection/index:inspect", body
+            client, "POST", "v1/urlInspection/index:inspect", body
           );
 
           if (!response?.inspectionResult) {
@@ -933,7 +933,7 @@ server.registerTool(
         try {
           const body = { inspectionUrl: pageUrl, siteUrl: site_url };
           const response = await gscRequest<{ inspectionResult?: Record<string, unknown> }>(
-            client, "POST", "/urlInspection/index:inspect", body
+            client, "POST", "v1/urlInspection/index:inspect", body
           );
 
           if (!response?.inspectionResult) {
@@ -1012,7 +1012,7 @@ server.registerTool(
     try {
       const client = await getGscClient();
       const data = await gscRequest<{ sitemap?: Array<Record<string, unknown>> }>(
-        client, "GET", `/sites/${encodeURIComponent(site_url)}/sitemaps`
+        client, "GET", `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps`
       );
 
       if (!data.sitemap?.length) {
@@ -1067,8 +1067,8 @@ server.registerTool(
     try {
       const client = await getGscClient();
       const queryPath = sitemap_index
-        ? `/sites/${encodeURIComponent(site_url)}/sitemaps?${new URLSearchParams({ sitemapIndex: sitemap_index })}`
-        : `/sites/${encodeURIComponent(site_url)}/sitemaps`;
+        ? `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps?${new URLSearchParams({ sitemapIndex: sitemap_index })}`
+        : `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps`;
 
       const data = await gscRequest<{ sitemap?: Array<Record<string, unknown>> }>(client, "GET", queryPath);
 
@@ -1129,7 +1129,7 @@ server.registerTool(
     try {
       const client = await getGscClient();
       const details = await gscRequest<Record<string, unknown>>(
-        client, "GET", `/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`
+        client, "GET", `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`
       );
 
       if (!details) return { content: [{ type: "text" as const, text: `No details found for sitemap ${sitemap_url}.` }] };
@@ -1178,12 +1178,12 @@ server.registerTool(
   async ({ site_url, sitemap_url }) => {
     try {
       const client = await getGscClient();
-      await gscRequest(client, "PUT", `/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`);
+      await gscRequest(client, "PUT", `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`);
 
       // 验证提交
       try {
         const details = await gscRequest<Record<string, unknown>>(
-          client, "GET", `/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`
+          client, "GET", `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`
         );
         const lines = [`Successfully submitted sitemap: ${sitemap_url}`];
         if (details.lastSubmitted) {
@@ -1223,7 +1223,7 @@ server.registerTool(
       const client = await getGscClient();
       // 检查站点地图是否存在
       try {
-        await gscRequest(client, "GET", `/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`);
+        await gscRequest(client, "GET", `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`);
       } catch (e: unknown) {
         if ((e as Record<string, unknown>).status === 404) {
           return { content: [{ type: "text" as const, text: `Sitemap not found: ${sitemap_url}. It may have already been deleted or was never submitted.` }] };
@@ -1231,7 +1231,7 @@ server.registerTool(
         throw e;
       }
 
-      await gscRequest(client, "DELETE", `/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`);
+      await gscRequest(client, "DELETE", `webmasters/v3/sites/${encodeURIComponent(site_url)}/sitemaps/${encodeURIComponent(sitemap_url)}`);
       return {
         content: [{
           type: "text" as const,
@@ -1271,8 +1271,8 @@ server.registerTool(
         try {
           const client = await getGscClient();
           const queryPath = params.sitemap_index
-            ? `/sites/${encodeURIComponent(params.site_url)}/sitemaps?${new URLSearchParams({ sitemapIndex: params.sitemap_index })}`
-            : `/sites/${encodeURIComponent(params.site_url)}/sitemaps`;
+            ? `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps?${new URLSearchParams({ sitemapIndex: params.sitemap_index })}`
+            : `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps`;
           const data = await gscRequest<{ sitemap?: Array<Record<string, unknown>> }>(client, "GET", queryPath);
           if (!data.sitemap?.length) {
             return { content: [{ type: "text" as const, text: `No sitemaps found for ${params.site_url}${params.sitemap_index ? ` in index ${params.sitemap_index}` : "."}` }] };
@@ -1304,7 +1304,7 @@ server.registerTool(
         try {
           const client = await getGscClient();
           const details = await gscRequest<Record<string, unknown>>(
-            client, "GET", `/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`
+            client, "GET", `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`
           );
           if (!details) return { content: [{ type: "text" as const, text: `No details found for sitemap ${params.sitemap_url}.` }] };
           const isIndex = Boolean(details.isSitemapsIndex);
@@ -1339,10 +1339,10 @@ server.registerTool(
         // submit_sitemap
         try {
           const client = await getGscClient();
-          await gscRequest(client, "PUT", `/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`);
+          await gscRequest(client, "PUT", `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`);
           try {
             const details = await gscRequest<Record<string, unknown>>(
-              client, "GET", `/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`
+              client, "GET", `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`
             );
             const lines = [`Successfully submitted sitemap: ${params.sitemap_url}`];
             if (details.lastSubmitted) lines.push(`Submission time: ${formatDate(details.lastSubmitted as string) || details.lastSubmitted}`);
@@ -1362,14 +1362,14 @@ server.registerTool(
         try {
           const client = await getGscClient();
           try {
-            await gscRequest(client, "GET", `/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`);
+            await gscRequest(client, "GET", `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`);
           } catch (e: unknown) {
             if ((e as Record<string, unknown>).status === 404) {
               return { content: [{ type: "text" as const, text: `Sitemap not found: ${params.sitemap_url}. It may have already been deleted or was never submitted.` }] };
             }
             throw e;
           }
-          await gscRequest(client, "DELETE", `/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`);
+          await gscRequest(client, "DELETE", `webmasters/v3/sites/${encodeURIComponent(params.site_url)}/sitemaps/${encodeURIComponent(params.sitemap_url!)}`);
           return { content: [{ type: "text" as const, text: `Successfully deleted sitemap: ${params.sitemap_url}\n\nNote: This only removes the sitemap from Search Console.` }] };
         } catch (e: unknown) {
           return { content: [{ type: "text" as const, text: `Error deleting sitemap: ${e instanceof Error ? e.message : String(e)}` }] };

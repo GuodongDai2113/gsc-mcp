@@ -2,6 +2,7 @@ import { OAuth2Client, CodeChallengeMethod, GoogleAuth } from "google-auth-libra
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import * as crypto from "node:crypto";
 import * as http from "node:http";
 import open from "open";
@@ -31,7 +32,7 @@ function expandPath(raw: string): string {
 const SCRIPT_DIR = (() => {
   // 编译后 __dirname 指向 build/，需要回退到 src/ 以查找凭据文件
   // 当用户 clone 安装时，凭据文件放在 src/ 目录下
-  const dir = path.dirname(__filename);
+  const dir = path.dirname(fileURLToPath(import.meta.url));
   if (/[\\/]build[\\/]?$/.test(dir)) {
     return dir.replace(/[\\/]build[\\/]?$/, path.sep + "src");
   }
