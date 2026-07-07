@@ -4,8 +4,10 @@
   "description": "Google Search Console MCP Server - TypeScript MCP 服务器",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node build/index.js"
+    "clean": "node -e \"fs.rmSync('build',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "test": "npm run build && node --test",
+    "test:unit": "node --test"
   },
   "keywords": ["mcp", "google-search-console", "gsc", "seo"],
   "author": "",
@@ -18,8 +20,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^26.1.0",
-    "typescript": "^6.0.3"
+    "@types/node": "^24.0.10",
+    "typescript": "^5.8.3"
   },
   "bin": {
     "gsc-mcp": "./build/index.js"
